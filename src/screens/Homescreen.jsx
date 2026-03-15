@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View, Text, ScrollView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { HomeHeader } from '../components/home/HomeHeader';
 import { ApiCarousel } from '../components/home/ApiCarousel';
-import { ApiInfo } from '../components/home/ApiInfo';
-import { fetchMissionData } from '../services/apiService';
+import { CategoryBento } from '../components/home/CategoryBento';
+import { IntelligenceCard } from '../components/home/IntelligenceCard';
+import { fetchApiData } from '../services/apiService';
+import { RetroLoader } from '../components/ui/RetroLoader';
 
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,7 +17,7 @@ export default function HomeScreen() {
   }, []);
 
   const loadData = async () => {
-    const data = await fetchMissionData();
+    const data = await fetchApiData();
     setMissions(data);
     setLoading(false);
   };
@@ -22,33 +25,58 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator color="#18181b" />
+        <RetroLoader label="Syncing mission feed..." />
       </View>
     );
   }
 
+  const latestIdsBySource = new Map();
+  missions.forEach((item) => {
+    const sourceKey = item.source || item.id;
+    if (!latestIdsBySource.has(sourceKey)) {
+      latestIdsBySource.set(sourceKey, item.id);
+    }
+  });
+
+  const carouselIds = new Set(latestIdsBySource.values());
+  const carouselData = missions.filter((item) => carouselIds.has(item.id));
+  const allNews = missions.filter((item) => item.source?.startsWith('news-'));
+  const moreNews = allNews.filter((item) => !carouselIds.has(item.id)).slice(0, 3);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.mainWrapper}>
-        <View style={styles.headerContainer}>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.brand}>api-quest</Text>
-              <Text style={styles.subBrand}>Explorer Dashboard</Text>
-            </View>
-            <TouchableOpacity style={styles.ghostButton}>
-              <Ionicons name="person-outline" size={20} color="#09090b" />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <HomeHeader />
+        <ApiCarousel data={carouselData} onItemPress={(item) => navigation.navigate('NewsDetail', { item })} />
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <ApiCarousel data={missions} />
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>System Specs</Text>
-            <ApiInfo icon="terminal-outline" label="Environment" value="Production v4" />
-            <ApiInfo icon="shield-checkmark-outline" label="Security" value="AES-256" />
-            <ApiInfo icon="server-outline" label="Gateway" value="Edge-Lambda" />
+        <ScrollView style={styles.scrollBody} showsVerticalScrollIndicator={false}>
+          <CategoryBento
+            activeFilter="all"
+            onCategoryPress={(filterKey) => navigation.navigate('News', { newsItems: allNews, initialFilter: filterKey })}
+          />
+
+          <View style={styles.feedSection}>
+            <Text style={styles.sectionTitle}>More news</Text>
+
+            {moreNews.length === 0 ? (
+              <Text style={styles.emptyText}>No extra news available right now.</Text>
+            ) : (
+              moreNews.map((item) => (
+                <IntelligenceCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => navigation.navigate('NewsDetail', { item })}
+                />
+              ))
+            )}
+
+            <TouchableOpacity
+              style={styles.browseAllButton}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('News', { newsItems: allNews, initialFilter: 'all' })}
+            >
+              <Text style={styles.browseAllText}>Browse all news</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
@@ -59,12 +87,25 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  mainWrapper: { flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 10 },
-  headerContainer: { paddingHorizontal: 16, marginBottom: 8 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 16 },
-  brand: { fontSize: 20, fontWeight: '700', color: '#09090b' },
-  subBrand: { fontSize: 12, color: '#71717a' },
-  ghostButton: { padding: 8, borderWidth: 1, borderColor: '#e4e4e7' },
-  detailsSection: { paddingHorizontal: 16, paddingTop: 32, paddingBottom: 40 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 },
+  mainWrapper: { flex: 1, paddingTop: Platform.OS === 'android' ? 18 : 2 },
+  scrollBody: { flex: 1 },
+  feedSection: { paddingHorizontal: 16, marginTop: 32, paddingBottom: 40 },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 },
+  emptyText: { fontSize: 13, color: '#71717a', marginBottom: 16 },
+  browseAllButton: {
+    height: 44,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e4e4e7',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2
+  },
+  browseAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#18181b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8
+  }
 });

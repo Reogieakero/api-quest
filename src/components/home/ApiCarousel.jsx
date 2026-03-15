@@ -1,12 +1,11 @@
 import React from 'react';
 import { StyleSheet, View, Text, FlatList, Dimensions, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Badge } from '../ui/Badge';
 import { useAutoCarousel } from '../../hooks/useAutoCarousel';
 
 const { width } = Dimensions.get('window');
 
-export const ApiCarousel = ({ data }) => {
+export const ApiCarousel = ({ data, onItemPress }) => {
   if (!data || data.length === 0) return null;
 
   const infiniteData = [data[data.length - 1], ...data, data[0]];
@@ -14,12 +13,11 @@ export const ApiCarousel = ({ data }) => {
 
   const renderSlideContent = (item) => (
     <View style={styles.contentOverlay}>
-      <Badge status={item.status}>{item.status === 'success' ? 'Active' : 'Locked'}</Badge>
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.desc} numberOfLines={2}>
         {item.desc}
       </Text>
-      <TouchableOpacity style={styles.button} activeOpacity={0.85}>
+      <TouchableOpacity style={styles.button} activeOpacity={0.85} onPress={() => onItemPress?.(item)}>
         <Text style={styles.buttonText}>Read more</Text>
       </TouchableOpacity>
     </View>
@@ -63,7 +61,6 @@ export const ApiCarousel = ({ data }) => {
 
 const styles = StyleSheet.create({
   carouselWrapper: {
-    backgroundColor: '#fafafa',
     paddingVertical: 10
   },
   slide: {

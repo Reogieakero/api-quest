@@ -1,4 +1,4 @@
-export const fetchMissionData = async () => {
+export const fetchApiData = async () => {
   try {
     const NASA_KEY = process.env.EXPO_PUBLIC_NASA_API_KEY;
     const NEWS_KEY = process.env.EXPO_PUBLIC_NEWSDATA_API_KEY;
@@ -17,48 +17,63 @@ export const fetchMissionData = async () => {
     const spaceData = await spaceRes.json();
     const weatherData = await weatherRes.json();
 
-    const phNews = phNewsData?.results?.[0];
-    const worldNews = worldNewsData?.results?.[0];
+    const apiData = [];
 
-    return [
-      {
-        id: 'weather-mati',
-        title: 'Mati Station Intel',
-        desc: `Current Intel: Mati City is at ${weatherData?.current_weather?.temperature}°C. Coastal conditions monitored.`,
-        image: 'https://images.pexels.com/photos/1118873/pexels-photo-1118873.jpeg?auto=compress&cs=tinysrgb&w=800',
-        status: 'success'
-      },
-      {
-        id: `news-ph`,
-        title: phNews?.title ? phNews.title.substring(0, 45) + '...' : 'PH Intel',
-        desc: phNews?.description ? phNews.description.substring(0, 90) + '...' : 'Local Philippine data stream intercepted.',
-        image: phNews?.image_url || 'https://images.unsplash.com/photo-1526481280693-3bfa7568e0f3?w=800',
-        status: 'success'
-      },
-      {
-        id: `news-world`,
-        title: worldNews?.title ? worldNews.title.substring(0, 45) + '...' : 'Global Intel',
-        desc: worldNews?.description ? worldNews.description.substring(0, 90) + '...' : 'International technology signals received.',
-        image: worldNews?.image_url || 'https://images.unsplash.com/photo-1504711432869-efd597cdd042?w=800',
-        status: 'success'
-      },
-      {
-        id: `crypto-btc`,
-        title: 'Market Pulse',
-        desc: `Bitcoin Ledger: Currently trading at $${cryptoData?.bitcoin?.usd?.toLocaleString() || 'N/A'}.`,
-        image: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=800',
-        status: 'success'
-      },
-      {
-        id: `space-nasa`,
-        title: spaceData?.title || 'Deep Space Monitor',
-        desc: `NASA APOD: Daily cosmic metadata intercept complete.`,
-        image: spaceData?.url || 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800',
-        status: 'success'
-      }
-    ];
+    apiData.push({
+      id: 'weather-mati',
+      title: 'Mati Station Intel',
+      desc: `Current Intel: Mati City is at ${weatherData?.current_weather?.temperature}°C. Coastal conditions monitored.`,
+      image: 'https://images.pexels.com/photos/1118873/pexels-photo-1118873.jpeg?auto=compress&cs=tinysrgb&w=800',
+      status: 'success',
+      source: 'weather'
+    });
+
+    const phResults = phNewsData?.results || [];
+    phResults.forEach((article, index) => {
+      apiData.push({
+        id: `news-ph-${article.article_id || index}`,
+        title: article.title || 'PH Intel',
+        desc: article.description || 'Local Philippine data stream intercepted.',
+        image: article.image_url || 'https://images.pexels.com/photos/1595385/pexels-photo-1595385.jpeg?auto=compress&cs=tinysrgb&w=800',
+        status: 'success',
+        source: 'news-ph'
+      });
+    });
+
+    const worldResults = worldNewsData?.results || [];
+    worldResults.forEach((article, index) => {
+      apiData.push({
+        id: `news-world-${article.article_id || index}`,
+        title: article.title || 'Global Intel',
+        desc: article.description || 'International technology signals received.',
+        image: article.image_url || 'https://images.pexels.com/photos/1504711/pexels-photo-1504711.jpeg?auto=compress&cs=tinysrgb&w=800',
+        status: 'success',
+        source: 'news-world'
+      });
+    });
+
+    apiData.push({
+      id: `crypto-btc`,
+      title: 'Market Pulse',
+      desc: `Bitcoin Ledger: Currently trading at $${cryptoData?.bitcoin?.usd?.toLocaleString() || 'N/A'}.`,
+      image: 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=800',
+      status: 'success',
+      source: 'crypto'
+    });
+
+    apiData.push({
+      id: `space-nasa`,
+      title: spaceData?.title || 'Deep Space Monitor',
+      desc: `NASA APOD: Daily cosmic metadata intercept complete.`,
+      image: spaceData?.url || 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800',
+      status: 'success',
+      source: 'space'
+    });
+
+    return apiData;
+
   } catch (error) {
     console.error("API Sync Error:", error);
-    return [{ id: 'err', title: 'System Offline', desc: 'Sync failed.', image: null, status: 'pending' }];
+    return [{ id: 'err', title: 'System Offline', desc: 'Sync failed.', image: null, status: 'pending', source: 'system' }];
   }
 };
