@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, SafeAreaView, ScrollView, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { MissionCarousel } from '../components/home/MissionCarousel';
-import { MissionInfo } from '../components/home/MissionInfo';
+import { ApiCarousel } from '../components/home/ApiCarousel';
+import { ApiInfo } from '../components/home/ApiInfo';
 import { fetchMissionData } from '../services/apiService';
 
 export default function HomeScreen() {
@@ -43,12 +43,12 @@ export default function HomeScreen() {
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false}>
-          <MissionCarousel data={missions} />
+          <ApiCarousel data={missions} />
           <View style={styles.detailsSection}>
             <Text style={styles.sectionTitle}>System Specs</Text>
-            <MissionInfo icon="terminal-outline" label="Environment" value="Production v4" />
-            <MissionInfo icon="shield-checkmark-outline" label="Security" value="AES-256" />
-            <MissionInfo icon="server-outline" label="Gateway" value="Edge-Lambda" />
+            <ApiInfo icon="terminal-outline" label="Environment" value="Production v4" />
+            <ApiInfo icon="shield-checkmark-outline" label="Security" value="AES-256" />
+            <ApiInfo icon="server-outline" label="Gateway" value="Edge-Lambda" />
           </View>
         </ScrollView>
       </View>

@@ -6,7 +6,7 @@ import { useAutoCarousel } from '../../hooks/useAutoCarousel';
 
 const { width } = Dimensions.get('window');
 
-export const MissionCarousel = ({ data }) => {
+export const ApiCarousel = ({ data }) => {
   if (!data || data.length === 0) return null;
 
   const infiniteData = [data[data.length - 1], ...data, data[0]];

@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export const MissionInfo = ({ icon, label, value }) => (
+export const ApiInfo = ({ icon, label, value }) => (
   <View style={styles.container}>
     <View style={styles.iconBox}>
       <Ionicons name={icon} size={18} color="#71717a" />
